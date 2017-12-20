@@ -1,7 +1,7 @@
 # coding : utf-8
 import pandas as pd
 import sys
-sys.path.insert(0, '/home/mamady/Bureau/Cours3A/HPC/Projet RF/codeBase/RandomForests/TreeMethods')
+sys.path.insert(0, '/home/mamady/Bureau/Cours3A/HPC/Projet RF/codeBase/Projet_HPC/TreeMethods')
 
 from DecisionTreeClassifier import DecisionTreeClassifier
 from RandomForestClassifier import RandomForestClassifier
@@ -25,12 +25,14 @@ df = pd.DataFrame(data=dataset,columns =['feature_1','feature_2','target'])
 # # y_0 = tree.predict(data_point)from mpi4py import MPI
 # # print("DecisionTreeClassifier: ",y_0)from mpi4py import MPI
 # ############################################################"""
-from mpi4py import MPI
-rank = MPI.COMM_WORLD.Get_rank()
+# from mpi4py import MPI
+# rank = MPI.COMM_WORLD.Get_rank()
+# trees = []
 forest = RandomForestClassifier(n_trees=5,max_depth=5, min_size=1)
 trees = forest.fit(df, target='target', test = data_test)
-if rank==0:
-	print("predictions", trees)
+
+# if rank==0:
+print("predictions", trees)
 
 
 # y_1 = forest.predict(data_point, trees)

@@ -1,7 +1,11 @@
 from math import sqrt
 from RandomForest import RandomForest
 from DecisionTreeClassifier import DecisionTreeClassifier
+from mpi4py import MPI
+import os
 
+import sys
+sys.path.insert(0, '/home/mamady/Bureau/Cours3A/HPC/Projet RF/codeBase/Projet_HPC/TreeMethods')
 
 our_trees = list()
 class RandomForestClassifier (RandomForest):
@@ -41,16 +45,16 @@ class RandomForestClassifier (RandomForest):
 			min_size (int): The minimum number of datapoints in terminal nodes.
 
 		"""
-		rank = MPI.COMM_WORLD.Get_rank()
-		if rank == 0:
-			if cost != 'gini':
-				raise NameError('Not valid cost function')
-			else:
-				RandomForest.__init__(self, cost,  n_trees=10, max_depth=2, min_size=2)
+		# rank = MPI.COMM_WORLD.Get_rank()
+		# if rank == 0:
+		if cost != 'gini':
+			raise NameError('Not valid cost function')
+		else:
+			RandomForest.__init__(self, cost,  n_trees=10, max_depth=2, min_size=2)
 
 
 
-	def fit(self, train, target=None, test=None):
+	def fit(self, train, target=None, test=None):#, predict=None):
 		"""
 		Fit the random forest to the training set train.  If a test set is provided
 		then the return value wil be the predictions of the RandomForest on the
@@ -83,7 +87,6 @@ class RandomForestClassifier (RandomForest):
 		n_features = int(sqrt(len(train[0])-1))
 
 
-
 		comm = MPI.COMM_WORLD
 		rank = comm.Get_rank()
 		size = comm.Get_size()
@@ -103,13 +106,14 @@ class RandomForestClassifier (RandomForest):
 				if isinstance(test, list) is False:
 					test = test.tolist()
 				predictions = [self.predict(row) for row in test]
-				return(predictions)
+
+				return predictions
+
 		else:
 			smpl = comm.recv(source = 0, tag = 0)
 			tree = DecisionTreeClassifier(self.max_depth, self.min_size, self.cost_function)
 			tree.fit(smpl, n_features)
 			comm.send(tree, dest = 0, tag = 1)
-
 
 	def predict(self, row):
 		"""
@@ -121,15 +125,15 @@ class RandomForestClassifier (RandomForest):
 
 		:Returns: (int) : The predicted target class for this data point.
 		"""
-		rank = MPI.COMM_WORLD.Get_rank()
-		if rank ==0 :
-			if isinstance(row, list) is False:
-				row = row.tolist()
-				predictions = [tree.predict(row) for tree in self.trees]
-			else:
-				predictions = [tree.predict(row) for tree in self.trees]
-				# count retourne le nombre de fois que obj apparait dans la liste : list.count(obj)
-			return max(set(predictions), key=predictions.count)
+		# rank = MPI.COMM_WORLD.Get_rank()
+		# if rank ==0 :
+		if isinstance(row, list) is False:
+			row = row.tolist()
+			predictions = [tree.predict(row) for tree in self.trees]
+		else:
+			predictions = [tree.predict(row) for tree in self.trees]
+			# count retourne le nombre de fois que obj apparait dans la liste : list.count(obj)
+		return max(set(predictions), key=predictions.count)
 
 
 
@@ -204,3 +208,46 @@ class RandomForestClassifier (RandomForest):
 			if actual[i] == predicted[i]:
 				correct += 1
 		return correct / float(len(actual)) * 100.0
+
+import pandas as pd
+def main():
+	dataset = [[2.771244718, 1.784783929, 0],
+			       [1.728571309, 1.169761413, 0],
+			       [3.678319846, 2.81281357, 1],
+			       [3.961043357, 2.61995032, 1],
+			       [2.999208922, 2.209014212, 0],
+			       [7.497545867, 3.162953546, 0],
+			       [9.00220326, 3.339047188, 1],
+			       [7.444542326, 0.476683375, 1],
+			       [10.12493903, 3.234550982, 0],
+			       [6.642287351, 3.319983761, 1]]
+
+	data_point = pd.Series([2.0, 23.0], index=['feature_1','feature_2'])
+	data_test = [[6.642287351, 3.319983761]]
+
+	df = pd.DataFrame(data=dataset,columns =['feature_1','feature_2','target'])
+	# # tree = DecisionTreeClassifier(max_depth=2,min_size=1)
+	# # tree.fit(df,target='target')
+	# # y_0 = tree.predict(data_point)from mpi4py import MPI
+	# # print("DecisionTreeClassifier: ",y_0)from mpi4py import MPI
+	# ############################################################"""
+	# from mpi4py import MPI
+	rank = MPI.COMM_WORLD.Get_rank()
+	# trees = []
+	forest = RandomForestClassifier(n_trees=5,max_depth=5, min_size=1)
+	trees = forest.fit(df, target='target', test = data_test)
+
+	if rank==0:
+		print("predictions", trees)
+		# MPI.Finalize()
+		# os._exit(0)
+import timeit
+if __name__ == "__main__":
+	t_s = timeit.default_timer()
+	main()
+	t_e = timeit.default_timer()
+	if MPI.COMM_WORLD.Get_rank() == 0:
+		print ("Total time %s" %(t_e - t_s))
+	# y_1 = forest.predict(data_point, trees)
+	# y_1 = max(set(trees), key=trees.count)
+	# print("RandomForestClassifier: ",y_1)
