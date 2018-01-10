@@ -2,12 +2,12 @@ from random import randrange
 
 class DecisionTree (object):
 	"""
-	A decision tree base class. 
+	A decision tree base class.
 
-	Classification and Regression Trees will be derived class that override 
+	Classification and Regression Trees will be derived class that override
 	certain functions of this class.  This was done because many common
 	methods, so to reduce code they are written here in the base class.
-		
+
 	:Atrributes:
 		**max_depth** (int): The maximum depth of tree.
 
@@ -24,7 +24,7 @@ class DecisionTree (object):
 		Constructor for a generic decision tree.  It just sets the max_depth
 		and min_size.
 
-		Args: 
+		Args:
 			max_depth (int) : The maximum depth of tree.
 			min_size (int) : The min number of datapoints in terminal nodes.
 		"""
@@ -42,11 +42,11 @@ class DecisionTree (object):
 		have the minmum number of training points per node, min_size, is
 		achieved.
 
-		Note: n_features will be passed by the RandomForest as it is 
-			  usually ta subset of the total number of features. 
+		Note: n_features will be passed by the RandomForest as it is
+			  usually ta subset of the total number of features.
 			  However, if one is using the class as a stand alone decision
-			  tree, then the n_features will automatically be 
-		
+			  tree, then the n_features will automatically be
+
 		Args:
 			train (list or DataFrame) : The dataset.
 
@@ -75,14 +75,14 @@ class DecisionTree (object):
 
 	def _get_split(self, dataset):
 		"""
-		Select the best splitting point and feature for a dataset 
+		Select the best splitting point and feature for a dataset
 		using a random selection of self.n_features number of features.
 
-		Args:	
+		Args:
 			dataset (list of list): Training data.
-			
+
 		Returns:
-			Dictionary of the best splitting feature of randomly chosen and 
+			Dictionary of the best splitting feature of randomly chosen and
 			the best splitting value.
 		"""
 		b_index, b_value, b_score, b_groups = 999, 999, 999, None
@@ -98,7 +98,7 @@ class DecisionTree (object):
 
 		# loop through the number of features and values of the data
 		# to figure out which gives the best split according
-		# to the derived classes cost function value of the tested 
+		# to the derived classes cost function value of the tested
 		# split
 		for index in features:
 			for row in dataset:
@@ -173,7 +173,7 @@ class DecisionTree (object):
 	def _predict(self, row, node):
 		"""
 		Predicts the target value that this datapoint belongs to by recursively
-		traversing tree and returns the termina leaf value corresponding 
+		traversing tree and returns the termina leaf value corresponding
 		to this data point.
 
 		Args:
@@ -195,13 +195,13 @@ class DecisionTree (object):
 			else:
 				return node['right']
 
-	
+
 	def print_tree(self, node=None, depth=0):
 		"""
 		Prints the tree using a pre-order traversal.
 
-		:Parameters: 
-		
+		:Parameters:
+
 			**node** (dict) : Current node in the tree.
 
 			**depth** (int) : The depth of the current node.
@@ -210,7 +210,7 @@ class DecisionTree (object):
 			self.print_tree(self.root)
 		else:
 			if isinstance(node, dict):
-				print('%s[X%d < %.3f]' % ((depth*' ', 
+				print('%s[X%d < %.3f]' % ((depth*' ',
 					  (node['index']+1), node['value'])))
 				self.print_tree(node['left'], depth+1)
 				self.print_tree(node['right'], depth+1)
@@ -243,9 +243,3 @@ class DecisionTree (object):
 			r_dataset[i].append(targets[i])
 
 		return r_dataset
-
-
-
-
-
-
